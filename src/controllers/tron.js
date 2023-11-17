@@ -64,8 +64,40 @@ router.get('/balance-trc20/:publicKey/:tokenAddress', async (req, res) => {
     }
 })
 
-router.post('/send-trc20', async (req, res) => {
-    const tokenAddress = req.body.tokenAddress;
+
+//router.post('/send-trc20', async (req, res) => {
+//    const tokenAddress = req.body.tokenAddress;
+//    const toPublicKey = req.body.toPublicKey;
+//    const amount = req.body.amount;
+//    const fromPrivateKey = req.body.fromPrivateKey;
+
+//    const tronWeb = new TronWeb({
+//        fullHost : 'https://api.trongrid.io/',
+//        solidityNode: 'https://api.trongrid.io/', 
+//        privateKey: fromPrivateKey
+//      }
+//    )
+
+//    try {
+//        let contract = await tronWeb.contract().at(tokenAddress);
+//        const decimals = await contract.decimals().call();
+//        const lamports = Math.pow(10,decimals)
+//        
+//        let result = await contract.transfer(
+//            toPublicKey, 
+//            amount * lamports
+//        ).send()
+//        res.json({
+//            'result': result
+//        });
+//    } catch (error) {
+//        res.json({
+//            'error': error
+//        })
+//    }
+//})
+
+router.post('/send-trx', async (req, res) => {
     const toPublicKey = req.body.toPublicKey;
     const amount = req.body.amount;
     const fromPrivateKey = req.body.fromPrivateKey;
@@ -74,26 +106,34 @@ router.post('/send-trc20', async (req, res) => {
         fullHost : 'https://api.trongrid.io/',
         solidityNode: 'https://api.trongrid.io/', 
         privateKey: fromPrivateKey
-      }
-    )
+    });
 
     try {
-        let contract = await tronWeb.contract().at(tokenAddress);
-        const decimals = await contract.decimals().call();
-        const lamports = Math.pow(10,decimals)
-        
-        let result = await contract.transfer(
-            toPublicKey, 
-            amount * lamports
-        ).send()
+        // Obtener la dirección del remitente desde la clave privada
+        const fromAddress = tronWeb.address.fromPrivateKey(fromPrivateKey);
+
+        // Obtener el balance actual del remitente
+        const currentBalance = await tronWeb.trx.getBalance(fromAddress);
+
+        // Verificar si el balance es suficiente para realizar la transacción
+        if (currentBalance < amount) {
+            return res.json({
+                'error': 'Fondos insuficientes para realizar la transacción'
+            });
+        }
+
+        // Enviar la transacción de TRX
+        const result = await tronWeb.trx.sendTransaction(toPublicKey, amount);
+
         res.json({
             'result': result
         });
     } catch (error) {
         res.json({
             'error': error
-        })
+        });
     }
-})
+});
+
 
 module.exports = router;
