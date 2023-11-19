@@ -15,6 +15,66 @@ const tronWeb = new TronWeb({
   }
 )
 
+const contractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+const abi = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_upgradedAddress","type":"address"}],"name":"deprecate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_evilUser","type":"address"}],"name":"addBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"upgradedAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maximumFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unpause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_maker","type":"address"}],"name":"getBlackListStatus","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paused","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_subtractedValue","type":"uint256"}],"name":"decreaseApproval","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_value","type":"uint256"}],"name":"calcFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"pause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"oldBalanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newBasisPoints","type":"uint256"},{"name":"newMaxFee","type":"uint256"}],"name":"setParams","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"issue","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_addedValue","type":"uint256"}],"name":"increaseApproval","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"redeem","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"basisPointsRate","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isBlackListed","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_clearedUser","type":"address"}],"name":"removeBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"MAX_UINT","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_blackListedUser","type":"address"}],"name":"destroyBlackFunds","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_initialSupply","type":"uint256"},{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint8"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_blackListedUser","type":"address"},{"indexed":false,"name":"_balance","type":"uint256"}],"name":"DestroyedBlackFunds","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Issue","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Redeem","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newAddress","type":"address"}],"name":"Deprecate","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_user","type":"address"}],"name":"AddedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_user","type":"address"}],"name":"RemovedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"feeBasisPoints","type":"uint256"},{"indexed":false,"name":"maxFee","type":"uint256"}],"name":"Params","type":"event"},{"anonymous":false,"inputs":[],"name":"Pause","type":"event"},{"anonymous":false,"inputs":[],"name":"Unpause","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"previousOwner","type":"address"},{"indexed":true,"name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}];
+
+router.get('/token-info/:contractAddress/:ownerAddress', async (req, res) => {
+    try {
+        const { contractAddress, ownerAddress } = req.params;
+
+        // Crea una instancia del contrato TRC20
+        const tronWeb = new TronWeb({
+            fullHost: 'https://api.trongrid.io/',
+            solidityNode: 'https://api.trongrid.io/',
+            privateKey: null, // Puedes dejarlo como null si no necesitas una clave privada
+        });
+
+        // Establece la dirección del propietario
+        tronWeb.setAddress(ownerAddress);
+
+        const instance = await tronWeb.contract(abi, contractAddress);
+
+        // Llama a las funciones del contrato para obtener información
+        const tokenName = await instance.name().call();
+        const decimals = await instance.decimals().call();
+        const tokenSymbol = await instance.symbol().call();
+        // Puedes agregar más llamadas aquí para obtener más información del contrato
+
+        res.json({
+            'name': tokenName,
+            'decimals': decimals,
+            'symbol': tokenSymbol,
+            // Agrega más campos según sea necesario
+        });
+    } catch (error) {
+        console.error('Error al obtener información del token TRC20:', error);
+        res.status(500).json({ error: 'Error al obtener información del token TRC20.' });
+    }
+});
+
+// Define tu ruta para obtener el nombre del TRC20
+// router.get('/nombre-trc20', async (req, res) => {
+//     try {
+//         // Asegúrate de tener la dirección del propietario (owner address)
+//         const ownerAddress = 'THPvaUhoh2Qn2y9THCZML3H815hhFhn5YC';  // Reemplaza con la dirección correcta
+
+//         // Crea una instancia del contrato TRC20
+//         const trc20Contract = await tronWeb.contract(abi, contractAddress, ownerAddress);
+
+//         // Llama a la función 'name()' del contrato
+//         const nombreToken = await trc20Contract.name().call();
+
+//         // Devuelve el nombre del token como respuesta
+//         res.json({
+//             'nombre_token': nombreToken,
+//         });
+//     } catch (error) {
+//         console.error('Error al obtener el nombre del token TRC20:', error);
+//         res.status(500).json({ error: 'Error al obtener el nombre del token TRC20.' });
+//     }
+// });
+
+
 router.post('/keypair', async (req, res) => {
     const mnemonic = req.body.mnemonic;
 
@@ -62,40 +122,7 @@ router.get('/balance-trc20/:publicKey/:tokenAddress', async (req, res) => {
             'error': error
         })
     }
-})
-
-
-//router.post('/send-trc20', async (req, res) => {
-//    const tokenAddress = req.body.tokenAddress;
-//    const toPublicKey = req.body.toPublicKey;
-//    const amount = req.body.amount;
-//    const fromPrivateKey = req.body.fromPrivateKey;
-
-//    const tronWeb = new TronWeb({
-//        fullHost : 'https://api.trongrid.io/',
-//        solidityNode: 'https://api.trongrid.io/', 
-//        privateKey: fromPrivateKey
-//      }
-//    )
-
-//    try {
-//        let contract = await tronWeb.contract().at(tokenAddress);
-//        const decimals = await contract.decimals().call();
-//        const lamports = Math.pow(10,decimals)
-//        
-//        let result = await contract.transfer(
-//            toPublicKey, 
-//            amount * lamports
-//        ).send()
-//        res.json({
-//            'result': result
-//        });
-//    } catch (error) {
-//        res.json({
-//            'error': error
-//        })
-//    }
-//})
+});
 
 router.post('/send-trx', async (req, res) => {
     const toPublicKey = req.body.toPublicKey;
@@ -181,43 +208,87 @@ router.post('/send-trc20', async (req, res) => {
 });
  
 
-//const abi =   [{'constant':true,'inputs':[],'name':'name','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'value','type':'uint256'}],'name':'approve','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'totalSupply','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'sender','type':'address'},{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transferFrom','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'decimals','outputs':[{'name':'','type':'uint8'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'addedValue','type':'uint256'}],'name':'increaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'account','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':true,'inputs':[],'name':'symbol','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'subtractedValue','type':'uint256'}],'name':'decreaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':false,'inputs':[{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transfer','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'owner','type':'address'},{'name':'spender','type':'address'}],'name':'allowance','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'inputs':[],'payable':false,'stateMutability':'nonpayable','type':'constructor'},{'anonymous':false,'inputs':[{'indexed':true,'name':'from','type':'address'},{'indexed':true,'name':'to','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Transfer','type':'event'},{'anonymous':false,'inputs':[{'indexed':true,'name':'owner','type':'address'},{'indexed':true,'name':'spender','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Approval','type':'event'}]; 
+// router.get('/info-token/:contractAddress', async (req, res) => {
+//     const { contractAddress } = req.params;
+
+
+//     try {
+//         // Crear una instancia del contrato TRC20
+//         const tronWeb = new TronWeb({
+//             fullHost: 'https://api.trongrid.io/',
+//             solidityNode: 'https://api.trongrid.io/',
+//             privateKey: null,  // Puedes dejarlo como null si no necesitas una clave privada
+//         });
+
+//         const trc20Contract = await tronWeb.contract(abi, contractAddress);
+
+//         // Llamar a las funciones del contrato para obtener información
+//         const tokenName = await trc20Contract.name().call();
+//         const tokenDecimals = await trc20Contract.decimals().call();
+//         const tokenSymbol = await trc20Contract.symbol().call();
+
+//         // Devolver la información recopilada
+//         const informacionToken = {
+//             name: tokenName,
+//             decimals: tokenDecimals,
+//             symbol: tokenSymbol
+//         };
+
+//         res.json(informacionToken);
+//     } catch (error) {
+//         console.error('Error al obtener información del contrato TRC20:', error);
+//         res.status(500).json({ error: 'Error al obtener información del contrato TRC20.' });
+//     }
+// });
+
+// const contractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
+// const trc20Contract = await tronWeb.contract(abi, contractAddress);
+
+
+// const tokenName = await trc20Contract.name().call();
+// const tokenDecimals = await trc20Contract.decimals().call();
+// const tokenSymbol = await trc20Contract.symbol().call();
+
+// console.log('Nombre del token:', tokenName);
+// console.log('Decimales del token:', tokenDecimals);
+// console.log('Símbolo del token:', tokenSymbol);
 
 
 //abi TRC20
 // Función para obtener información del contrato TRC20
-router.get('/info-token/:contractAddress/:ownerAddress', async (req, res) => {
-    const { contractAddress, ownerAddress } = req.params;
+// router.get('/info-token/:contractAddress/:ownerAddress', async (req, res) => {
+//     const { contractAddress, ownerAddress } = req.params;
 
-    const abi =   [{'constant':true,'inputs':[],'name':'name','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'value','type':'uint256'}],'name':'approve','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'totalSupply','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'sender','type':'address'},{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transferFrom','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'decimals','outputs':[{'name':'','type':'uint8'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'addedValue','type':'uint256'}],'name':'increaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'account','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':true,'inputs':[],'name':'symbol','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'subtractedValue','type':'uint256'}],'name':'decreaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':false,'inputs':[{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transfer','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'owner','type':'address'},{'name':'spender','type':'address'}],'name':'allowance','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'inputs':[],'payable':false,'stateMutability':'nonpayable','type':'constructor'},{'anonymous':false,'inputs':[{'indexed':true,'name':'from','type':'address'},{'indexed':true,'name':'to','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Transfer','type':'event'},{'anonymous':false,'inputs':[{'indexed':true,'name':'owner','type':'address'},{'indexed':true,'name':'spender','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Approval','type':'event'}]; 
+//     const abi =   [{'constant':true,'inputs':[],'name':'name','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'value','type':'uint256'}],'name':'approve','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'totalSupply','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'sender','type':'address'},{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transferFrom','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[],'name':'decimals','outputs':[{'name':'','type':'uint8'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'addedValue','type':'uint256'}],'name':'increaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'account','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':true,'inputs':[],'name':'symbol','outputs':[{'name':'','type':'string'}],'payable':false,'stateMutability':'view','type':'function'},{'constant':false,'inputs':[{'name':'spender','type':'address'},{'name':'subtractedValue','type':'uint256'}],'name':'decreaseAllowance','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':false,'inputs':[{'name':'recipient','type':'address'},{'name':'amount','type':'uint256'}],'name':'transfer','outputs':[{'name':'','type':'bool'}],'payable':false,'stateMutability':'nonpayable','type':'function'},{'constant':true,'inputs':[{'name':'owner','type':'address'},{'name':'spender','type':'address'}],'name':'allowance','outputs':[{'name':'','type':'uint256'}],'payable':false,'stateMutability':'view','type':'function'},{'inputs':[],'payable':false,'stateMutability':'nonpayable','type':'constructor'},{'anonymous':false,'inputs':[{'indexed':true,'name':'from','type':'address'},{'indexed':true,'name':'to','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Transfer','type':'event'},{'anonymous':false,'inputs':[{'indexed':true,'name':'owner','type':'address'},{'indexed':true,'name':'spender','type':'address'},{'indexed':false,'name':'value','type':'uint256'}],'name':'Approval','type':'event'}]; 
 
-    try {
-        // Crear una instancia del contrato TRC20 con la dirección del propietario
-        const tronWeb = new TronWeb({
-            fullHost: 'https://api.trongrid.io/',
-            solidityNode: 'https://api.trongrid.io/',
-            privateKey: null,  // Puedes dejarlo como null si no necesitas una clave privada
-        });
+//     try {
+//         // Crear una instancia del contrato TRC20 con la dirección del propietario
+//         const tronWeb = new TronWeb({
+//             fullHost: 'https://api.trongrid.io/',
+//             solidityNode: 'https://api.trongrid.io/',
+//             privateKey: null,  // Puedes dejarlo como null si no necesitas una clave privada
+//         });
 
-        const trc20Contract = await tronWeb.contract(abi, contractAddress, ownerAddress);
+//         const trc20Contract = await tronWeb.contract(abi, contractAddress, ownerAddress);
 
-        // Llamar a las funciones del contrato para obtener información
-        const tokenName = await trc20Contract.name().call();
-        const tokenDecimals = await trc20Contract.decimals().call();
-        const tokenSymbol = await trc20Contract.symbol().call();
+//         // Llamar a las funciones del contrato para obtener información
+//         const tokenName = await trc20Contract.name().call();
+//         const tokenDecimals = await trc20Contract.decimals().call();
+//         const tokenSymbol = await trc20Contract.symbol().call();
 
-        // Devolver la información recopilada
-        const informacionToken = {
-            name: tokenName,
-            decimals: tokenDecimals,
-            symbol: tokenSymbol
-        };
+//         // Devolver la información recopilada
+//         const informacionToken = {
+//             name: tokenName,
+//             decimals: tokenDecimals,
+//             symbol: tokenSymbol
+//         };
 
-        res.json(informacionToken);
-    } catch (error) {
-        console.error('Error al obtener información del contrato TRC20:', error);
-        res.status(500).json({ error: 'Error al obtener información del contrato TRC20.' });
-    }
-});
+//         res.json(informacionToken);
+//     } catch (error) {
+//         console.error('Error al obtener información del contrato TRC20:', error);
+//         res.status(500).json({ error: 'Error al obtener información del contrato TRC20.' });
+//     }
+// });
 
 module.exports = router;
