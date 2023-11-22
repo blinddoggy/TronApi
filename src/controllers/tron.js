@@ -144,7 +144,7 @@ router.get('/balance-trx/:publicKey', async (req, res) => {
 
     let balance = await tronWeb.trx.getBalance(publicKey);
     res.json({
-        "balance-TRX: ": balance/1000000
+        "balanceTrc20": balance/1000000
     })
 })
 
