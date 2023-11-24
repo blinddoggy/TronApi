@@ -156,7 +156,9 @@ router.get('/balance-trc20/:publicKey/:tokenAddress', async (req, res) => {
         let contract = await tronWeb.contract().at(tokenAddress);
 
         let result = await contract.balanceOf(publicKey).call();
-        let balance = tronWeb.toDecimal(result);
+        const decimals = await contract.decimals().call();
+        const lamports = Math.pow(10, decimals);
+        let balance = tronWeb.toDecimal(result/lamports);
         res.json({
             'balance': balance
         })
