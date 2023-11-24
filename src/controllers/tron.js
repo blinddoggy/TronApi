@@ -182,18 +182,25 @@ router.post('/send-trx', async (req, res) => {
         // Obtener la dirección del remitente desde la clave privada
         const fromAddress = tronWeb.address.fromPrivateKey(fromPrivateKey);
 
+        // Crear una instancia del contrato del token TRX para obtener los decimales
+        const trxContract = await tronWeb.contract().at('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'); // Dirección del contrato TRX
+
+        // Obtener la cantidad de decimales del token TRX
+        const decimals = await trxContract.decimals().call();
+        const lamports = Math.pow(10, decimals);
+
         // Obtener el balance actual del remitente
         const currentBalance = await tronWeb.trx.getBalance(fromAddress);
 
         // Verificar si el balance es suficiente para realizar la transacción
-        if (currentBalance < amount) {
+        if (currentBalance < amount * lamports) {
             return res.json({
                 'error': 'Fondos insuficientes para realizar la transacción'
             });
         }
 
         // Enviar la transacción de TRX
-        const result = await tronWeb.trx.sendTransaction(toPublicKey, amount);
+        const result = await tronWeb.trx.sendTransaction(toPublicKey, amount * lamports);
 
         res.json({
             'result': result
@@ -204,6 +211,7 @@ router.post('/send-trx', async (req, res) => {
         });
     }
 });
+
 
 //funcion eviar trc20
 router.post('/send-trc20', async (req, res) => {
