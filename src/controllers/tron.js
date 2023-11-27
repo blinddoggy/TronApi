@@ -8,10 +8,19 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
+const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
+
+let useMainnet = false; // Cambiar a false para usar la red de pruebas
+
+function getFullHostUrl() {
+  return useMainnet ? 'https://api.trongrid.io/' : testnetUrl;
+}
+
+
 //Conexion con el cluster de tron 
 const tronWeb = new TronWeb({
-    fullHost : 'https://api.trongrid.io/',
-    solidityNode: 'https://api.trongrid.io/' 
+    fullHost : getFullHostUrl(),
+    solidityNode: getFullHostUrl() 
   });
   
 
@@ -48,8 +57,8 @@ router.get('/nft-info/:contractAddress/:tokenId/:ownerAddress', async (req, res)
 
         // Crea una instancia del contrato ERC721
         const tronWeb = new TronWeb({
-            fullHost: 'https://api.trongrid.io/',
-            solidityNode: 'https://api.trongrid.io/',
+            fullHost: getFullHostUrl(),
+            solidityNode: getFullHostUrl(),
             privateKey: null, // Puedes dejarlo como null si no necesitas una clave privada
         });
 
@@ -89,8 +98,8 @@ router.get('/token-info/:contractAddress/:ownerAddress', async (req, res) => {
 
         // Crea una instancia del contrato TRC20
         const tronWeb = new TronWeb({
-            fullHost: 'https://api.trongrid.io/',
-            solidityNode: 'https://api.trongrid.io/',
+            fullHost: getFullHostUrl(),
+            solidityNode: getFullHostUrl(),
             privateKey: null, // Puedes dejarlo como null si no necesitas una clave privada
         });
 
@@ -141,7 +150,6 @@ router.post('/keypair', async (req, res) => {
 
 router.get('/balance-trx/:publicKey', async (req, res) => {
     const { publicKey } = req.params;
-
     let balance = await tronWeb.trx.getBalance(publicKey);
     res.json({
         "balanceTrc20": balance/1000000
@@ -175,8 +183,8 @@ router.post('/send-trx', async (req, res) => {
     const fromPrivateKey = req.body.fromPrivateKey;
 
     const tronWeb = new TronWeb({
-        fullHost : 'https://api.trongrid.io/',
-        solidityNode: 'https://api.trongrid.io/', 
+        fullHost : getFullHostUrl(),
+        solidityNode: getFullHostUrl(), 
         privateKey: fromPrivateKey
     });
 
@@ -184,12 +192,8 @@ router.post('/send-trx', async (req, res) => {
         // Obtener la dirección del remitente desde la clave privada
         const fromAddress = tronWeb.address.fromPrivateKey(fromPrivateKey);
 
-        // Crear una instancia del contrato del token TRX para obtener los decimales
-        const trxContract = await tronWeb.contract().at('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'); // Dirección del contrato TRX
-
         // Obtener la cantidad de decimales del token TRX
-        const decimals = await trxContract.decimals().call();
-        const lamports = Math.pow(10, decimals);
+        const lamports = Math.pow(10, 6);
 
         // Obtener el balance actual del remitente
         const currentBalance = await tronWeb.trx.getBalance(fromAddress);
@@ -223,8 +227,8 @@ router.post('/send-trc20', async (req, res) => {
     const fromPrivateKey = req.body.fromPrivateKey;
 
     const tronWeb = new TronWeb({
-        fullHost : 'https://api.trongrid.io/',
-        solidityNode: 'https://api.trongrid.io/', 
+        fullHost : getFullHostUrl(),
+        solidityNode: getFullHostUrl(), 
         privateKey: fromPrivateKey
     });
 
