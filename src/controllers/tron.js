@@ -11,7 +11,7 @@ const bip32 = BIP32Factory(ecc)
 const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
 
 // Obtener Mnemonic
-router.get('/mnemonic', (req, res) => {
+router.get('/get-mnemonic', (req, res) => {
     const mnemonic = bip39.generateMnemonic()
     res.send(mnemonic)
 })
