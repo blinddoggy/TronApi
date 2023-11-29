@@ -12,8 +12,13 @@ const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL
 
 // Obtener Mnemonic
 router.get('/get-mnemonic', (req, res) => {
-    const mnemonic = bip39.generateMnemonic()
-    res.send(mnemonic)
+    try {
+        const mnemonic = bip39.generateMnemonic()
+        res.json({"mnemonic":mnemonic});
+    }  catch (error) {
+        console.error('Error al obtener las 12 palabras:', error);
+        res.status(500).json({ error: 'Error al obtener las 12 palabras.' });
+    }
 })
 
 let useMainnet = false; // Cambiar a false para usar la red de pruebas
