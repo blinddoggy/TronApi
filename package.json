@@ -10,9 +10,6 @@
   "author": "maritoli",
   "license": "MIT",
   "dependencies": {
-    "@metaplex-foundation/js": "^0.17.6",
-    "@solana/spl-token": "^0.3.6",
-    "@solana/web3.js": "^1.87.6",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
     "body-parser": "^1.20.2",
