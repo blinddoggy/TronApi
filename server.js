@@ -4,6 +4,8 @@ const bodyParser=require('body-parser');
 require("dotenv").config();
 
 const tron = require('./src/controllers/tron');
+const solana = require('./src/controllers/solana');
+
 
 const port = process.env.PORT;
 const app = express();
@@ -19,3 +21,4 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 app.use('/tron', tron);
+app.use('/solana', solana);
