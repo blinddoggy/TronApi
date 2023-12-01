@@ -11,9 +11,54 @@ const bip32 = BIP32Factory(ecc)
 const web3 = require('@solana/web3.js');
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
+const ethers = require('ethers');
+
 
 const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
 
+//EVMs keypair
+router.post('/evm-keypair', async (req, res) => {
+    const mnemonic = req.body.mnemonic;
+    const isValid = bip39.validateMnemonic(mnemonic);
+
+    if (isValid === true) {
+        const seed = await bip39.mnemonicToSeed(mnemonic);
+        const node = bip32.fromSeed(seed);
+        const child = node.derivePath(`m/44'/60'/0'/0/0`);
+        const privateKey = child.privateKey.toString('hex');
+        const address = new ethers.Wallet(privateKey);;
+        res.json({
+            'public_key': address,
+            'private_key': privateKey
+        })
+    } else {
+        res.json({
+            'error': 'La frase de recuperacion es invalida'})
+    }
+});
+
+
+//Tron keypair
+router.post('/keypair', async (req, res) => {
+    const mnemonic = req.body.mnemonic;
+
+    const isValid = bip39.validateMnemonic(mnemonic);
+
+    if (isValid === true) {
+        const seed = await bip39.mnemonicToSeed(mnemonic);
+        const node = bip32.fromSeed(seed);
+        const child = node.derivePath(`m/44'/195'/0'/0/0`);
+        const privateKey = child.privateKey.toString('hex');
+        const address = await TronWeb.address.fromPrivateKey(privateKey);
+        res.json({
+            'public_key': address,
+            'private_key': privateKey
+        })
+    } else {
+        res.json({
+            'error': 'La frase de recuperacion es invalida'})
+    }
+})
 
 // Obtener Keypair con mnemonic para Solana
 router.post('/keypair-solana', (req,res) => {
@@ -163,26 +208,7 @@ router.get('/token-info/:contractAddress/:ownerAddress', async (req, res) => {
 })
 
 
-router.post('/keypair', async (req, res) => {
-    const mnemonic = req.body.mnemonic;
 
-    const isValid = bip39.validateMnemonic(mnemonic);
-
-    if (isValid === true) {
-        const seed = await bip39.mnemonicToSeed(mnemonic);
-        const node = bip32.fromSeed(seed);
-        const child = node.derivePath(`m/44'/195'/0'/0/0`);
-        const privateKey = child.privateKey.toString('hex');
-        const address = await TronWeb.address.fromPrivateKey(privateKey);
-        res.json({
-            'public_key': address,
-            'private_key': privateKey
-        })
-    } else {
-        res.json({
-            'error': 'La frase de recuperacion es invalida'})
-    }
-})
 
 router.get('/balance-trx/:publicKey', async (req, res) => {
     const { publicKey } = req.params;
