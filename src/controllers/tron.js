@@ -16,6 +16,51 @@ const ethers = require('ethers');
 
 const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
 
+
+router.get('/generate-keypair', async (req, res) => {
+    const mnemonic = bip39.generateMnemonic();
+
+    const seed = await bip39.mnemonicToSeed(mnemonic);
+    const node = bip32.fromSeed(seed);
+
+    let path, privateKey, publicKey;
+
+    // Generar claves para EVM
+    path = `m/44'/60'/0'/0/0`;
+    privateKey = node.derivePath(path).privateKey.toString('hex');
+    publicKey = new ethers.Wallet(privateKey).address;
+    const evmKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+    // Generar claves para Tron
+    path = `m/44'/195'/0'/0/0`;
+    privateKey = node.derivePath(path).privateKey.toString('hex');
+    publicKey = await TronWeb.address.fromPrivateKey(privateKey);
+    const tronKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+    // Generar claves para Solana
+    path = `m/44'/501'/0'/0'`;
+    const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+    privateKey = bs58.encode(keypair.secretKey);
+    publicKey = keypair.publicKey.toString();
+    const solanaKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+    res.json({
+        'mnemonic':mnemonic,
+        'evm_keypair': evmKeyPair,
+        'tron_keypair': tronKeyPair,
+        'solana_keypair': solanaKeyPair
+    });
+});
+
 //EVMs keypair
 router.post('/evm-keypair', async (req, res) => {
     const mnemonic = req.body.mnemonic;
