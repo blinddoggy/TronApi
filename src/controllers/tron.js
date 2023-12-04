@@ -14,52 +14,23 @@ const bs58 = require('bs58');
 const ethers = require('ethers');
 
 
+//TODO: ------------------Organizar metodos que no son del API de Tron en otra ruta----------------
+
 const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
 
+let useMainnet = false; // Cambiar a false para usar la red de pruebas
 
-router.get('/generate-keypair', async (req, res) => {
-    const mnemonic = bip39.generateMnemonic();
+function getFullHostUrl() {
+  return useMainnet ? 'https://api.trongrid.io/' : testnetUrl;
+}
 
-    const seed = await bip39.mnemonicToSeed(mnemonic);
-    const node = bip32.fromSeed(seed);
+//Conexion con el cluster de tron 
+const tronWeb = new TronWeb({
+    fullHost : getFullHostUrl(),
+    solidityNode: getFullHostUrl() 
+  });
+  
 
-    let path, privateKey, publicKey;
-
-    // Generar claves para EVM
-    path = `m/44'/60'/0'/0/0`;
-    privateKey = node.derivePath(path).privateKey.toString('hex');
-    publicKey = new ethers.Wallet(privateKey).address;
-    const evmKeyPair = {
-        'public_key': publicKey,
-        'private_key': privateKey
-    };
-
-    // Generar claves para Tron
-    path = `m/44'/195'/0'/0/0`;
-    privateKey = node.derivePath(path).privateKey.toString('hex');
-    publicKey = await TronWeb.address.fromPrivateKey(privateKey);
-    const tronKeyPair = {
-        'public_key': publicKey,
-        'private_key': privateKey
-    };
-
-    // Generar claves para Solana
-    path = `m/44'/501'/0'/0'`;
-    const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
-    privateKey = bs58.encode(keypair.secretKey);
-    publicKey = keypair.publicKey.toString();
-    const solanaKeyPair = {
-        'public_key': publicKey,
-        'private_key': privateKey
-    };
-
-    res.json({
-        'mnemonic':mnemonic,
-        'evm_keypair': evmKeyPair,
-        'tron_keypair': tronKeyPair,
-        'solana_keypair': solanaKeyPair
-    });
-});
 
 //EVMs keypair
 router.post('/evm-keypair', async (req, res) => {
@@ -105,7 +76,7 @@ router.post('/keypair', async (req, res) => {
     }
 })
 
-// Obtener Keypair con mnemonic para Solana
+//Solana Keypair
 router.post('/keypair-solana', (req,res) => {
     const mnemonic = req.body.mnemonic;
     const isValid = bip39.validateMnemonic(mnemonic);
@@ -125,30 +96,8 @@ router.post('/keypair-solana', (req,res) => {
     }
 })
 
-// Obtener Mnemonic
-router.get('/get-mnemonic', (req, res) => {
-    try {
-        const mnemonic = bip39.generateMnemonic()
-        res.json({"mnemonic":mnemonic});
-    }  catch (error) {
-        console.error('Error al obtener las 12 palabras:', error);
-        res.status(500).json({ error: 'Error al obtener las 12 palabras.' });
-    }
-})
-
-let useMainnet = false; // Cambiar a false para usar la red de pruebas
-
-function getFullHostUrl() {
-  return useMainnet ? 'https://api.trongrid.io/' : testnetUrl;
-}
 
 
-//Conexion con el cluster de tron 
-const tronWeb = new TronWeb({
-    fullHost : getFullHostUrl(),
-    solidityNode: getFullHostUrl() 
-  });
-  
 
   //--------------TODO: transfreFrom function -----------------////////////////////////
   //TRC 721 ABI
@@ -177,6 +126,7 @@ const tronWeb = new TronWeb({
       "type": "Function"
     }
   ];
+  
 router.get('/nft-info/:contractAddress/:tokenId/:ownerAddress', async (req, res) => {
     try {
         const { contractAddress,tokenId, ownerAddress } = req.params;
@@ -211,8 +161,6 @@ router.get('/nft-info/:contractAddress/:tokenId/:ownerAddress', async (req, res)
         res.status(500).json({ error: 'Error al obtener información del NFT ERC721.' });
     }
 });
-
-
 
 
 //TRC20 functions 
@@ -251,8 +199,6 @@ router.get('/token-info/:contractAddress/:ownerAddress', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener información del token TRC20.' });
     }
 })
-
-
 
 
 router.get('/balance-trx/:publicKey', async (req, res) => {
