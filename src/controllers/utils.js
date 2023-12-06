@@ -11,11 +11,10 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
-// const web3 = require('@solana/web3.js');
+const web3 = require('@solana/web3.js');
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
-// const web3 = require('@solana/web3.js');
 
 //importar llaves desde 12 palabras
     router.post('/get-keypairs', async (req, res) => {
