@@ -59,7 +59,7 @@ const ethers = require('ethers');
         // };
 
         res.json({
-            'mnemonic':mnemonic,
+            // 'mnemonic':mnemonic,
             'evm_keypair': evmKeyPair,
             'tron_keypair': tronKeyPair,
             //'solana_keypair': solanaKeyPair
