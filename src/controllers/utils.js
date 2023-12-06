@@ -15,6 +15,7 @@ const bip32 = BIP32Factory(ecc)
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
+const web3 = require('@solana/web3.js');
 
 //importar llaves desde 12 palabras
     router.post('/get-keypairs', async (req, res) => {
@@ -48,28 +49,27 @@ const ethers = require('ethers');
             'private_key': privateKey
         };
 
-        // // Generar claves para Solana
-        // path = `m/44'/501'/0'/0'`;
-        // const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
-        // privateKey = bs58.encode(keypair.secretKey);
-        // publicKey = keypair.publicKey.toString();
-        // const solanaKeyPair = {
-        //     'public_key': publicKey,
-        //     'private_key': privateKey
-        // };
+        // Generar claves para Solana
+        path = `m/44'/501'/0'/0'`;
+        const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+        privateKey = bs58.encode(keypair.secretKey);
+        publicKey = keypair.publicKey.toString();
+        const solanaKeyPair = {
+            'public_key': publicKey,
+            'private_key': privateKey
+        };
 
         res.json({
             // 'mnemonic':mnemonic,
             'evm_keypair': evmKeyPair,
             'tron_keypair': tronKeyPair,
-            //'solana_keypair': solanaKeyPair
+            'solana_keypair': solanaKeyPair
         });
 
     }else {
         res.json({
             'error': 'La frase de recuperacion es invalida'})
     }
-
 
 });
 
