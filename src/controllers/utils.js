@@ -11,7 +11,11 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
-const web3 = require('@solana/web3.js');
+const web3 = require("@solana/web3.js");
+(async () => {
+  const solana = new web3.Connection("https://flashy-blue-reel.solana-mainnet.quiknode.pro/c2e829af6a866905a19c02a601dc50aee1573a5d/");
+  console.log(await solana.getSlot());
+})();
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
