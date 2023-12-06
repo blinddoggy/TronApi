@@ -8,7 +8,7 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
-const web3 = require('@solana/web3.js');
+// const web3 = require('@solana/web3.js');
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
@@ -77,24 +77,24 @@ router.post('/keypair', async (req, res) => {
 })
 
 //Solana Keypair
-router.post('/keypair-solana', (req,res) => {
-    const mnemonic = req.body.mnemonic;
-    const isValid = bip39.validateMnemonic(mnemonic);
-    if (isValid === true) {
-        const seed = bip39.mnemonicToSeedSync(mnemonic, "")
-        const path = `m/44'/501'/0'/0'`;
-        const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
-        const secret_key = bs58.encode(keypair.secretKey)
-        res.json({
-            'public_key': keypair.publicKey.toString(),
-            'secret_key': secret_key
-        })
-    } else {
-        res.json({
-            'error': "La frase de recuperacion es invalida"
-        })
-    }
-})
+// router.post('/keypair-solana', (req,res) => {
+//     const mnemonic = req.body.mnemonic;
+//     const isValid = bip39.validateMnemonic(mnemonic);
+//     if (isValid === true) {
+//         const seed = bip39.mnemonicToSeedSync(mnemonic, "")
+//         const path = `m/44'/501'/0'/0'`;
+//         const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+//         const secret_key = bs58.encode(keypair.secretKey)
+//         res.json({
+//             'public_key': keypair.publicKey.toString(),
+//             'secret_key': secret_key
+//         })
+//     } else {
+//         res.json({
+//             'error': "La frase de recuperacion es invalida"
+//         })
+//     }
+// })
 
 
 
