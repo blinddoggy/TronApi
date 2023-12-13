@@ -10,6 +10,7 @@
   "author": "maritoli",
   "license": "MIT",
   "dependencies": {
+    "@solana/spl-token": "^0.3.9",
     "@solana/web3.js": "^1.87.6",
     "bcrypt": "^5.1.1",
     "bip32": "^4.0.0",

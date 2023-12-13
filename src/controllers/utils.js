@@ -17,7 +17,6 @@ const web3sol = require("@solana/web3.js");
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
-const bitcoin = require('bitcoinjs-lib');
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -27,8 +26,9 @@ const cors = require('cors');
 const crypto = require('crypto');
 const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
 const endpoint = process.env.QN_ENDPOINT_URL
-const feepayer = process.env.FEE_PAYER
 
+
+const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
 
 
 // Clave secreta para cifrado (asegúrate de guardar esto de manera segura)
@@ -105,6 +105,23 @@ router.post('/signup', async (req, res) => {
   });
 
   
+
+  // Obtener Balance de SPL Token
+router.get('/get-balance-spl/:publicKey/:splToken', async (req, res) => {
+    const { publicKey, splToken } = req.params;
+    const connection = new web3sol.Connection(endpoint)
+    const account = await findAssociatedTokenAddress(new web3sol.PublicKey(publicKey), new web3sol.PublicKey(splToken))
+    try {
+        const balance = await connection.getTokenAccountBalance(new web3sol.PublicKey(account.toString()))
+        res.json({
+            'balance': balance.value.uiAmount
+        })
+    } catch (e) {
+        res.json({
+            'balance': 0
+        })
+    }
+})
 
 // Obtener Balance de SOL con llave Publica
 router.get('/get-solana-balance/:publicKey', async (req, res) => {
