@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 
 
 const TronWeb = require('tronweb');
@@ -11,11 +13,11 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
-// const web3 = require("@solana/web3.js");
-// (async () => {
-//   const solana = new web3.Connection("https://flashy-blue-reel.solana-mainnet.quiknode.pro/c2e829af6a866905a19c02a601dc50aee1573a5d/");
-//   console.log(await solana.getSlot());
-// })();
+const web3 = require("@solana/web3.js");
+(async () => {
+  const solana = new web3.Connection("https://flashy-blue-reel.solana-mainnet.quiknode.pro/c2e829af6a866905a19c02a601dc50aee1573a5d/");
+  console.log(await solana.getSlot());
+})();
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
@@ -27,6 +29,25 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const crypto = require('crypto');
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCWdWbBygpNdb_PdDbr1wj8mK7H_q5Z-SA",
+    authDomain: "tradex-392f6.firebaseapp.com",
+    projectId: "tradex-392f6",
+    databaseURL:"https://tradex-392f6-default-rtdb.firebaseio.com/",
+    storageBucket: "tradex-392f6.appspot.com",
+    messagingSenderId: "373159113198",
+    appId: "1:373159113198:web:5311893da5f151112edeff",
+    measurementId: "G-148VV57WMB"
+  };
+
+  // Initialize Firebase
+//admin.initializeApp(firebaseConfig);
+
+
+//const db = admin.database();
+//const usuariosRef = db.ref('usuarios');
+
 
 // Clave secreta para cifrado (asegúrate de guardar esto de manera segura)
 const secretKey = 'UnaClaveSecretaMuySegura';
@@ -58,7 +79,6 @@ const users = [];
 router.post('/signup', async (req, res) => {
     try {
       const { username, password } = req.body;
-  
       // Verificar si el usuario ya existe
       if (users.some((user) => user.username === username)) {
         return res.status(400).json({ message: 'El usuario ya existe' });
@@ -69,7 +89,9 @@ router.post('/signup', async (req, res) => {
   
       // Almacenar en la base de datos (o en tu sistema de almacenamiento)
       users.push({ username, password: hashedPassword });
-  
+      //almacenando en firebsae
+      usuariosRef.push({username,password : hashedPassword});
+
       res.status(201).json({ message: 'Usuario creado exitosamente' });
     } catch (error) {
       console.error(error);
