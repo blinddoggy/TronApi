@@ -1,10 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-
-
 const TronWeb = require('tronweb');
 
 const bip39 = require('bip39');
@@ -13,11 +9,11 @@ const ecc = require('tiny-secp256k1')
 const { BIP32Factory } = require('bip32')
 const bip32 = BIP32Factory(ecc)
 
-const web3 = require("@solana/web3.js");
-(async () => {
-  const solana = new web3.Connection("https://flashy-blue-reel.solana-mainnet.quiknode.pro/c2e829af6a866905a19c02a601dc50aee1573a5d/");
-  console.log(await solana.getSlot());
-})();
+const web3sol = require("@solana/web3.js");
+// (async () => {
+//   const solana = new web3.Connection("https://flashy-blue-reel.solana-mainnet.quiknode.pro/c2e829af6a866905a19c02a601dc50aee1573a5d/");
+//   console.log(await solana.getSlot());
+// })();
 const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
@@ -29,24 +25,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const crypto = require('crypto');
+const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
+const endpoint = process.env.QN_ENDPOINT_URL
+const feepayer = process.env.FEE_PAYER
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCWdWbBygpNdb_PdDbr1wj8mK7H_q5Z-SA",
-    authDomain: "tradex-392f6.firebaseapp.com",
-    projectId: "tradex-392f6",
-    databaseURL:"https://tradex-392f6-default-rtdb.firebaseio.com/",
-    storageBucket: "tradex-392f6.appspot.com",
-    messagingSenderId: "373159113198",
-    appId: "1:373159113198:web:5311893da5f151112edeff",
-    measurementId: "G-148VV57WMB"
-  };
-
-  // Initialize Firebase
-//admin.initializeApp(firebaseConfig);
-
-
-//const db = admin.database();
-//const usuariosRef = db.ref('usuarios');
 
 
 // Clave secreta para cifrado (asegúrate de guardar esto de manera segura)
@@ -121,7 +103,24 @@ router.post('/signup', async (req, res) => {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   });
+
   
+
+// Obtener Balance de SOL con llave Publica
+router.get('/get-solana-balance/:publicKey', async (req, res) => {
+    const { publicKey } = req.params;
+    const connection = new web3sol.Connection(endpoint)
+    
+    const lamports = await connection.getBalance(new web3sol.PublicKey(publicKey)).catch((err) => {
+        console.log(err);
+    })
+    
+    const sol = lamports / LAMPORTS_PER_SOL
+    res.json({
+        'balance': sol
+    })
+})
+
 
 //importar llaves desde 12 palabras
     router.post('/get-keypairs', async (req, res) => {
@@ -155,15 +154,15 @@ router.post('/signup', async (req, res) => {
             'private_key': privateKey
         };
 
-        // Generar claves para Solana
-        // path = `m/44'/501'/0'/0'`;
-        // const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
-        // privateKey = bs58.encode(keypair.secretKey);
-        // publicKey = keypair.publicKey.toString();
-        // const solanaKeyPair = {
-        //     'public_key': publicKey,
-        //     'private_key': privateKey
-        // };
+        //Generar claves para Solana
+        path = `m/44'/501'/0'/0'`;
+        const keypair = web3sol.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+        privateKey = bs58.encode(keypair.secretKey);
+        publicKey = keypair.publicKey.toString();
+        const solanaKeyPair = {
+            'public_key': publicKey,
+            'private_key': privateKey
+        };
 
 
         // // Generar claves para Bitcoin
@@ -184,7 +183,7 @@ router.post('/signup', async (req, res) => {
             // 'mnemonic':mnemonic,
             'evm_keypair': evmKeyPair,
             'tron_keypair': tronKeyPair,
-            // 'solana_keypair': solanaKeyPair
+            'solana_keypair': solanaKeyPair
             // 'bitcoin_keypair': bitcoinKeyPairObject
         });
 
@@ -223,15 +222,15 @@ router.get('/generate-keypair', async (req, res) => {
         'private_key': privateKey
     };
 
-    // // Generar claves para Solana
-    // path = `m/44'/501'/0'/0'`;
-    // const keypair = web3.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
-    // privateKey = bs58.encode(keypair.secretKey);
-    // publicKey = keypair.publicKey.toString();
-    // const solanaKeyPair = {
-    //     'public_key': publicKey,
-    //     'private_key': privateKey
-    // };
+    //Generar claves para Solana
+    path = `m/44'/501'/0'/0'`;
+    const keypair = web3sol.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+    privateKey = bs58.encode(keypair.secretKey);
+    publicKey = keypair.publicKey.toString();
+    const solanaKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
 
     //Generar claves para Bitcoin
     // Generar un par de claves público-privado aleatorio
@@ -251,7 +250,7 @@ router.get('/generate-keypair', async (req, res) => {
         'mnemonic':mnemonic,
         'evm_keypair': evmKeyPair,
         'tron_keypair': tronKeyPair,
-        //'solana_keypair': solanaKeyPair
+        'solana_keypair': solanaKeyPair
         // 'bitcoin_keypair': bitcoinKeyPairObject
     });
 });
