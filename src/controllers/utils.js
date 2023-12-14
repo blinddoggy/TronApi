@@ -27,6 +27,8 @@ const crypto = require('crypto');
 const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
 const endpoint = process.env.QN_ENDPOINT_URL
 const feepayer = process.env.FEE_PAYER
+const SPL = require("@solana/spl-token");
+const { Metaplex } = require("@metaplex-foundation/js");
 
 
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
@@ -106,6 +108,55 @@ router.post('/signup', async (req, res) => {
   });
 
 
+  // Enviar SPL Tokens, el que sea ;)
+router.post('/send-spl-token', async (req, res) => {
+    const payer = web3sol.Keypair.fromSecretKey(bs58.decode(req.body.secretKey));
+    const receiver = new web3sol.PublicKey(req.body.toPublicKey);
+    const amount = req.body.amount;
+    const mint = req.body.mint;
+    const fee_payer = web3sol.Keypair.fromSecretKey(bs58.decode(feepayer));
+
+    const connection = new web3sol.Connection(endpoint, "confirmed")
+
+    const mintAddress = new web3sol.PublicKey(mint)
+
+    try {
+    
+        const transactionLamports = await getTokenLamports(mint)
+    
+        const fromTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            payer.publicKey
+        )
+    
+        const toTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            receiver
+        )
+            
+        const transactionSignature = await SPL.transfer(
+            connection,
+            fee_payer,
+            fromTokenAccount.address,
+            toTokenAccount.address,
+            payer.publicKey,
+            amount * transactionLamports,
+            [fee_payer, payer]
+        )
+        
+        res.json({
+            'transfer_transaction': `https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet-beta`
+        })
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
+
   //Enviar SOL con la secret key 
 router.post('/send-sol/', async (req, res) => {
     const secretKey = req.body.secretKey;
@@ -145,6 +196,37 @@ router.post('/send-sol/', async (req, res) => {
     }
 
 })
+
+
+// Obtener NFTs con llave Publica
+router.get('/get-solana-nft/:pubKey', async (req,res) => {
+    try {
+        const { pubKey } = req.params;
+
+        const nfts = []
+    
+        const connection = new web3sol.Connection(endpoint);
+        const wallet = new web3sol.PublicKey(pubKey)
+    
+        const metaplex = new Metaplex(connection);
+        const myNfts = await metaplex.nfts().findAllByOwner({
+            owner: wallet
+        });
+    
+        for (let i = 0; i < myNfts.length; i++) {
+            let fetchResult = await fetch(myNfts[i].uri)
+            let json = await fetchResult.json()
+            nfts.push(json)
+        }
+    
+        res.json(nfts)
+    } catch (error) {
+        res.json({
+            "error": error
+        })
+    }
+})
+
   
 
   // Obtener Balance de SPL Token
