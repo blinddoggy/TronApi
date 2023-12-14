@@ -29,6 +29,9 @@ const endpoint = process.env.QN_ENDPOINT_URL
 const feepayer = process.env.FEE_PAYER
 const SPL = require("@solana/spl-token");
 const { Metaplex } = require("@metaplex-foundation/js");
+const { Metaplex } = require("@metaplex/cli");
+const { token } = require("@metaplex/cli-config");
+
 
 
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
@@ -106,6 +109,36 @@ router.post('/signup', async (req, res) => {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   });
+
+
+
+  // Función para transferir un NFT con Metaplex
+router.post('/transfer-nft', async (req, res) => {
+    try {
+        const { privateKey, nftOrSft, fromOwner, toOwner, amount } = req.body;
+
+        const connection = new web3sol.Connection(endpoint);
+
+        // Crear instancia de Metaplex
+        const metaplex = new Metaplex(connection);
+
+        // Transferir el NFT
+        const transferResult = await metaplex.nfts().transfer({
+            nftOrSft,
+            authority: privateKey,  // Usar la clave privada del propietario
+            fromOwner,
+            toOwner,
+            amount: token(amount),
+        });
+
+        console.log('Resultado de la transferencia:', transferResult);
+
+        res.status(200).json({ message: 'Transferencia de NFT exitosa' });
+    } catch (error) {
+        console.error('Error en la transferencia de NFT:', error);
+        res.status(500).json({ message: 'Error en la transferencia de NFT' });
+    }
+});
 
 
   // Enviar SPL Tokens, el que sea ;)
