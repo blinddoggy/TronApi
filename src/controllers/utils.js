@@ -26,6 +26,7 @@ const cors = require('cors');
 const crypto = require('crypto');
 const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
 const endpoint = process.env.QN_ENDPOINT_URL
+const feepayer = process.env.FEE_PAYER
 
 
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
@@ -104,6 +105,46 @@ router.post('/signup', async (req, res) => {
     }
   });
 
+
+  //Enviar SOL con la secret key 
+router.post('/send-sol/', async (req, res) => {
+    const secretKey = req.body.secretKey;
+    const toPublicKey = req.body.toPublicKey;
+    const amount = req.body.amount;
+    const fee_payer = web3sol.Keypair.fromSecretKey(bs58.decode(feepayer));
+
+    try {
+        const toPubKey = new web3sol.PublicKey(toPublicKey)
+        const connection = new web3sol.Connection(endpoint, "confirmed")
+
+        //create Keypair
+        const keypair = web3sol.Keypair.fromSecretKey(
+            bs58.decode(secretKey)
+        );   
+          
+        const transferTransaction = new web3sol.Transaction()
+        .add(web3sol.SystemProgram.transfer({
+            fromPubkey: keypair.publicKey,
+            toPubkey: toPubKey,
+            lamports: amount * LAMPORTS_PER_SOL 
+        }))
+    
+        var signature = await web3sol.sendAndConfirmTransaction(
+            connection, 
+            transferTransaction, 
+            [fee_payer, keypair]).catch((err) => {
+            res.send(err.message)
+        })
+        res.json({
+            'transfer_transaction': `https://explorer.solana.com/tx/${signature}?cluster=mainnet-beta`
+        })
+    } catch (error) {
+        res.json({
+            'error': error
+        })
+    }
+
+})
   
 
   // Obtener Balance de SPL Token
@@ -127,14 +168,14 @@ router.get('/get-balance-spl/:publicKey/:splToken', async (req, res) => {
 router.get('/get-solana-balance/:publicKey', async (req, res) => {
     const { publicKey } = req.params;
     const connection = new web3sol.Connection(endpoint)
-    
+    // const sendAir = await connection.requestAirdrop(new web3sol.PublicKey(publicKey),1000000);
     const lamports = await connection.getBalance(new web3sol.PublicKey(publicKey)).catch((err) => {
         console.log(err);
     })
     
     const sol = lamports / LAMPORTS_PER_SOL
     res.json({
-        'balance': sol
+        'balance': sol,
     })
 })
 
