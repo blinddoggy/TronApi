@@ -28,9 +28,9 @@ const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
 const endpoint = process.env.QN_ENDPOINT_URL
 const feepayer = process.env.FEE_PAYER
 const SPL = require("@solana/spl-token");
-const { Metaplex } = require("@metaplex-foundation/js");
-const { Metaplex } = require("@metaplex/cli");
-const { token } = require("@metaplex/cli-config");
+ const { Metaplex } = require("@metaplex-foundation/js");
+// const { Metaplex } = require("@metaplex/cli");
+// const { token } = require("@metaplex/cli-config");
 
 
 
