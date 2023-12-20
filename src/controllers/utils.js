@@ -28,17 +28,21 @@ const LAMPORTS_PER_SOL = web3sol.LAMPORTS_PER_SOL
 const endpoint = process.env.QN_ENDPOINT_URL
 const feepayer = process.env.FEE_PAYER
 const SPL = require("@solana/spl-token");
- const { Metaplex } = require("@metaplex-foundation/js");
-// const { Metaplex } = require("@metaplex/cli");
-// const { token } = require("@metaplex/cli-config");
+const { Metaplex , keypairIdentity } = require("@metaplex-foundation/js");
+const { TokenStandard } = require ("@metaplex-foundation/mpl-token-metadata");
+
+
 
 
 
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
 
 
+
+
+
 // Clave secreta para cifrado (asegúrate de guardar esto de manera segura)
-const secretKey = 'UnaClaveSecretaMuySegura';
+// const secretKey = 'UnaClaveSecretaMuySegura';
 
 //encriptar con AES(advanced encryptation standard)
 function encryptAES(data) {
@@ -112,33 +116,37 @@ router.post('/signup', async (req, res) => {
 
 
 
-  // Función para transferir un NFT con Metaplex
-router.post('/transfer-nft', async (req, res) => {
+  router.post('/generate-bitcoin-account/:mnemonic', async (req, res) => {
     try {
-        const { privateKey, nftOrSft, fromOwner, toOwner, amount } = req.body;
-
-        const connection = new web3sol.Connection(endpoint);
-
-        // Crear instancia de Metaplex
-        const metaplex = new Metaplex(connection);
-
-        // Transferir el NFT
-        const transferResult = await metaplex.nfts().transfer({
-            nftOrSft,
-            authority: privateKey,  // Usar la clave privada del propietario
-            fromOwner,
-            toOwner,
-            amount: token(amount),
-        });
-
-        console.log('Resultado de la transferencia:', transferResult);
-
-        res.status(200).json({ message: 'Transferencia de NFT exitosa' });
+      const mnemonic = req.params.mnemonic;
+  
+      // Validar el mnemónico
+      if (!bip39.validateMnemonic(mnemonic)) {
+        return res.status(400).json({ error: 'Mnemónico inválido' });
+      }
+  
+      // Obtener la semilla desde el mnemónico
+      const seed = bip39.mnemonicToSeedSync(mnemonic);
+  
+      // Generar la clave privada y la dirección Bitcoin
+      const keyPair = bitcoin.ECPair.fromPrivateKey(seed.slice(0, 32), { compressed: true });
+      const address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey }).address;
+      const privateKey = keyPair.toWIF();
+  
+      const bitcoinAccount = {
+        publicKey: address,
+        privateKey: privateKey,
+      };
+  
+      res.json(bitcoinAccount);
     } catch (error) {
-        console.error('Error en la transferencia de NFT:', error);
-        res.status(500).json({ message: 'Error en la transferencia de NFT' });
+      console.error('Error al generar la cuenta de Bitcoin:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
-});
+  });
+
+
+ 
 
 
   // Enviar SPL Tokens, el que sea ;)
@@ -190,6 +198,54 @@ router.post('/send-spl-token', async (req, res) => {
 })
 
 
+  // Enviar SPL Tokens, el que sea ;)
+  router.post('/transfer-nft-solana', async (req, res) => {
+    const payer = web3sol.Keypair.fromSecretKey(bs58.decode(req.body.secretKey));
+    const receiver = new web3sol.PublicKey(req.body.toPublicKey);
+    const amount = 1;//
+    const mint = req.body.mint;
+    const fee_payer = web3sol.Keypair.fromSecretKey(bs58.decode(feepayer));
+
+    const connection = new web3sol.Connection(endpoint, "confirmed")
+
+    const mintAddress = new web3sol.PublicKey(mint)
+
+    try {
+    
+        const transactionLamports = await getTokenLamports(mint)
+    
+        const fromTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            payer.publicKey
+        )
+    
+        const toTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            receiver
+        )
+            
+        const transactionSignature = await SPL.transfer(
+            connection,
+            fee_payer,
+            fromTokenAccount.address,
+            toTokenAccount.address,
+            payer.publicKey,
+            amount * transactionLamports,
+            [fee_payer, payer]
+        )
+        
+        res.json({
+            'transfer_transaction': `https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet-beta`
+        })
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
   //Enviar SOL con la secret key 
 router.post('/send-sol/', async (req, res) => {
     const secretKey = req.body.secretKey;
@@ -231,6 +287,61 @@ router.post('/send-sol/', async (req, res) => {
 })
 
 
+
+// Llave privada del remitente (asegúrate de manejar esto de manera segura en un entorno de producción)
+// const senderPrivateKey = "4vkoYYJioftkPVSYh8cLJTBpFALjM3ruynxCK7GXbtK9SPRaWkbsyu2FVfM8Awu7vMhMn6EFJCxgn9yyjVUf5dNU";
+
+// // Ruta para transferir un NFT
+// router.post('/transfer-solana-nft', async (req, res) => {
+//   try {
+//     // Extraer datos del cuerpo de la solicitud
+//     const { mintPublicKey, recipientPublicKey } = req.body;
+
+//     // Crear una instancia de la conexión de Solana
+//     const connection = new web3sol.Connection(endpoint);
+
+//     // Crear instancias de las llaves
+//     const senderWallet = web3sol.Keypair.fromSecretKey(Buffer.from(senderPrivateKey, "hex"));
+//     const recipientWallet = new web3sol.PublicKey(recipientPublicKey);
+//     const senderPublicKey = senderWallet.publicKey;
+//     const feePayerPublicKey = new web3sol.PublicKey(feepayer);
+
+//     // Crear una instancia de Metaplex
+//     const metaplex = new Metaplex(connection);
+
+//     // Obtener el NFT por la dirección de la mint
+//     const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey });
+
+//     // Crear un constructor de transacciones para la transferencia
+//     const txBuilder = metaplex.nfts().builders().transfer({
+//       nftOrSft: nft,
+//       fromOwner: senderPublicKey,
+//       toOwner: recipientWallet,
+//       amount: token(1), // Ajusta la cantidad según tus necesidades
+//       authority: feePayerPublicKey,
+//     });
+
+//     // Obtener el bloque hash más reciente
+//     const blockhash = await connection.getLatestBlockhash();
+
+//     // Crear la transacción
+//     const transaction = txBuilder.toTransaction(blockhash);
+
+//     // Firmar la transacción con la llave privada del remitente
+//     transaction.partialSign(senderWallet);
+
+//     // Enviar la transacción
+//     const signature = await connection.sendRawTransaction(transaction.serialize());
+
+//     console.log("Transacción enviada:", signature);
+
+//     res.json({ success: true, signature });
+//   } catch (error) {
+//     console.error("Error al transferir el NFT:", error);
+//     res.status(500).json({ success: false, error: "Error al transferir el NFT" });
+//   }
+// });
+
 // Obtener NFTs con llave Publica
 router.get('/get-solana-nft/:pubKey', async (req,res) => {
     try {
@@ -260,7 +371,6 @@ router.get('/get-solana-nft/:pubKey', async (req,res) => {
     }
 })
 
-  
 
   // Obtener Balance de SPL Token
 router.get('/get-balance-spl/:publicKey/:splToken', async (req, res) => {
