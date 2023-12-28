@@ -34,8 +34,8 @@ const { TokenStandard } = require ("@metaplex-foundation/mpl-token-metadata");
 
 
 
-
-const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
+const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index');
+const bitcoin = require('bitcoinjs-lib');
 
 
 
@@ -114,35 +114,132 @@ router.post('/signup', async (req, res) => {
     }
   });
 
-
-
-  router.post('/generate-bitcoin-account/:mnemonic', async (req, res) => {
-    try {
-      const mnemonic = req.params.mnemonic;
   
-      // Validar el mnemónico
-      if (!bip39.validateMnemonic(mnemonic)) {
-        return res.status(400).json({ error: 'Mnemónico inválido' });
+  async function sendBitcoin(privateKeyWIF, toAddress, amount) {
+    try {
+      // Crear una clave privada a partir de la clave WIF (Wallet Import Format)
+      const privateKey = bitcoin.ECPair.fromWIF(privateKeyWIF);
+  
+      // Obtener información de la dirección de destino para construir la transacción
+      const toAddressInfo = await axios.get(`https://api.blockchair.com/bitcoin/dashboards/address/${toAddress}`);
+      
+      if (toAddressInfo.status !== 200 || !toAddressInfo.data || !toAddressInfo.data.data) {
+        throw new Error('No se pudo obtener información de la dirección de destino');
       }
   
-      // Obtener la semilla desde el mnemónico
-      const seed = bip39.mnemonicToSeedSync(mnemonic);
+      // Construir la transacción
+      const txBuilder = new bitcoin.TransactionBuilder();
+      const utxos = toAddressInfo.data.data[toAddress].utxo;
   
-      // Generar la clave privada y la dirección Bitcoin
-      const keyPair = bitcoin.ECPair.fromPrivateKey(seed.slice(0, 32), { compressed: true });
-      const address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey }).address;
-      const privateKey = keyPair.toWIF();
+      // Agregar las entradas (utxos) a la transacción
+      for (const utxo of utxos) {
+        txBuilder.addInput(utxo.transaction_hash, utxo.index);
+      }
   
-      const bitcoinAccount = {
-        publicKey: address,
-        privateKey: privateKey,
-      };
+      // Agregar la salida (destinatario)
+      txBuilder.addOutput(toAddress, amount);
   
-      res.json(bitcoinAccount);
+      // Calcular el cambio (si es necesario)
+      const changeAmount = utxos.reduce((total, utxo) => total + utxo.value, 0) - amount;
+      if (changeAmount > 0) {
+        const changeAddress = privateKey.getAddress();
+        txBuilder.addOutput(changeAddress, changeAmount);
+      }
+  
+      // Firmar la transacción con la clave privada
+      for (let i = 0; i < utxos.length; i++) {
+        txBuilder.sign(i, privateKey);
+      }
+  
+      // Construir la transacción
+      const tx = txBuilder.build();
+  
+      // Convertir la transacción a formato hexadecimal
+      const txHex = tx.toHex();
+  
+      // Enviar la transacción a través de una API de broadcasting (ejemplo: blockchair.com)
+      const broadcastResponse = await axios.post('https://api.blockchair.com/bitcoin/pushtx', { data: txHex });
+  
+      if (broadcastResponse.status !== 200 || !broadcastResponse.data || !broadcastResponse.data.data) {
+        throw new Error('No se pudo enviar la transacción');
+      }
+  
+      const transactionId = broadcastResponse.data.data.transaction_hash;
+      return transactionId;
     } catch (error) {
-      console.error('Error al generar la cuenta de Bitcoin:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      throw new Error(`Error al enviar bitcoins: ${error.message}`);
     }
+  }
+
+
+    
+
+  // Función para generar un par de claves y obtener una dirección de Bitcoin
+    function generateBitcoinAccount() {
+        try {
+        // Crea una clave privada aleatoria
+        const keyPair = bitcoin.ECPair.makeRandom();
+    
+        // Obtiene la clave privada y pública en formato hexadecimal
+        const privateKeyHex = keyPair.privateKey.toString('hex');
+        const publicKeyHex = keyPair.publicKey.toString('hex');
+    
+        // Crea un objeto de dirección de Bitcoin desde la clave pública
+        const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+    
+        console.log('Clave privada (hex):', privateKeyHex);
+        console.log('Clave pública (hex):', publicKeyHex);
+        console.log('Dirección de Bitcoin:', address);
+    
+        return {
+            privateKey: privateKeyHex,
+            publicKey: publicKeyHex,
+            bitcoinAddress: address,
+        };
+        } catch (error) {
+        console.error('Error al generar la cuenta de Bitcoin:', error.message);
+        throw error;
+        }
+    }
+  
+
+  //generar cuenta de bitcoin
+  router.post('/generate-bitcoin-account/', async (req, res) => {
+    //try {
+    const mnemonic = req.params.mnemonic;
+  
+      // Uso de la función
+    const privateKeyWIF = 'tu_clave_privada_en_formato_WIF';
+    const toAddress = 'direccion_del_destinatario';
+    const amountToSend = 0.001; // Cantidad de bitcoins a enviar
+
+      // Validar el mnemónico
+    //   if (!bip39.validateMnemonic(mnemonic)) {
+    //     return res.status(400).json({ error: 'Mnemónico inválido' });
+    //   }
+  
+    //   // Obtener la semilla desde el mnemónico
+    //   const seed = bip39.mnemonicToSeedSync(mnemonic);
+        
+    //   // Generar la clave privada y la dirección Bitcoin
+    //   const keyPair = bitcoin.ECPair.fromPrivateKey(seed.slice(0, 32), { compressed: true });
+    //   const address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey }).address;
+    //   const privateKey = keyPair.toWIF();
+    sendBitcoin(privateKeyWIF, toAddress, amountToSend)
+    .then(transactionId => console.log(`Transacción exitosa. ID: ${transactionId}`))
+    .catch(error => console.error(`Error: ${error.message}`));
+        //generateBitcoinAccount();
+
+    //   const bitcoinAccount = {
+    //     publicKey: address,
+    //     privateKey: privateKey,
+    //   };
+  
+    //   res.json(bitcoinAccount);
+    // } catch (error) {
+    //   console.error('Error al generar la cuenta de Bitcoin:', error);
+    //   res.status(500).json({ error: 'Error interno del servidor' });
+    // }
   });
 
 
@@ -287,61 +384,6 @@ router.post('/send-sol/', async (req, res) => {
 })
 
 
-
-// Llave privada del remitente (asegúrate de manejar esto de manera segura en un entorno de producción)
-// const senderPrivateKey = "4vkoYYJioftkPVSYh8cLJTBpFALjM3ruynxCK7GXbtK9SPRaWkbsyu2FVfM8Awu7vMhMn6EFJCxgn9yyjVUf5dNU";
-
-// // Ruta para transferir un NFT
-// router.post('/transfer-solana-nft', async (req, res) => {
-//   try {
-//     // Extraer datos del cuerpo de la solicitud
-//     const { mintPublicKey, recipientPublicKey } = req.body;
-
-//     // Crear una instancia de la conexión de Solana
-//     const connection = new web3sol.Connection(endpoint);
-
-//     // Crear instancias de las llaves
-//     const senderWallet = web3sol.Keypair.fromSecretKey(Buffer.from(senderPrivateKey, "hex"));
-//     const recipientWallet = new web3sol.PublicKey(recipientPublicKey);
-//     const senderPublicKey = senderWallet.publicKey;
-//     const feePayerPublicKey = new web3sol.PublicKey(feepayer);
-
-//     // Crear una instancia de Metaplex
-//     const metaplex = new Metaplex(connection);
-
-//     // Obtener el NFT por la dirección de la mint
-//     const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey });
-
-//     // Crear un constructor de transacciones para la transferencia
-//     const txBuilder = metaplex.nfts().builders().transfer({
-//       nftOrSft: nft,
-//       fromOwner: senderPublicKey,
-//       toOwner: recipientWallet,
-//       amount: token(1), // Ajusta la cantidad según tus necesidades
-//       authority: feePayerPublicKey,
-//     });
-
-//     // Obtener el bloque hash más reciente
-//     const blockhash = await connection.getLatestBlockhash();
-
-//     // Crear la transacción
-//     const transaction = txBuilder.toTransaction(blockhash);
-
-//     // Firmar la transacción con la llave privada del remitente
-//     transaction.partialSign(senderWallet);
-
-//     // Enviar la transacción
-//     const signature = await connection.sendRawTransaction(transaction.serialize());
-
-//     console.log("Transacción enviada:", signature);
-
-//     res.json({ success: true, signature });
-//   } catch (error) {
-//     console.error("Error al transferir el NFT:", error);
-//     res.status(500).json({ success: false, error: "Error al transferir el NFT" });
-//   }
-// });
-
 // Obtener NFTs con llave Publica
 router.get('/get-solana-nft/:pubKey', async (req,res) => {
     try {
@@ -447,20 +489,6 @@ router.get('/get-solana-balance/:publicKey', async (req, res) => {
             'private_key': privateKey
         };
 
-
-        // // Generar claves para Bitcoin
-        // // Generar un par de claves público-privado aleatorio
-        // const keyPair = bitcoin.ECPair.makeRandom();
-        
-        // // Obtener la dirección de Bitcoin desde la clave pública
-        // const address = keyPair.getAddress();
-        
-        // // Obtener la clave privada de Bitcoin en formato WIF (Wallet Import Format)
-        // const privateKeyWIF = keyPair.toWIF();
-        // const bitcoinKeyPairObject = {
-        //     'public_key': address,
-        //     'private_key': privateKeyWIF
-        // };
 
         res.json({
             // 'mnemonic':mnemonic,
