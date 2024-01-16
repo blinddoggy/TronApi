@@ -37,7 +37,56 @@ const { TokenStandard } = require ("@metaplex-foundation/mpl-token-metadata");
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index');
 const bitcoin = require('bitcoinjs-lib');
 
+ // Enviar NFT
+ router.post('/transfer-nft-solana', async (req, res) => {
+    const payer = web3sol.Keypair.fromSecretKey(bs58.decode(req.body.secretKey));
+    const receiver = new web3sol.PublicKey(req.body.toPublicKey);
+    const amount = 1;//
+    const mint = req.body.mint;
+    const fee_payer = web3sol.Keypair.fromSecretKey(bs58.decode(feepayer));
 
+    const connection = new web3sol.Connection(endpoint, "confirmed")
+
+    const mintAddress = new web3sol.PublicKey(mint)
+
+    try {
+    
+        const transactionLamports = await getTokenLamports(mint)
+    
+        const fromTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            payer.publicKey
+        )
+    
+        const toTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
+            connection,
+            fee_payer,
+            mintAddress,
+            receiver
+        )
+            
+        const transactionSignature = await SPL.transfer(
+            connection,
+            fee_payer,
+            fromTokenAccount.address,
+            toTokenAccount.address,
+            payer.publicKey,
+            amount * transactionLamports,
+            [fee_payer, payer]
+        )
+        
+        res.json({
+            'transfer_transaction': `https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet-beta`
+        })
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
+
+//Send SPL token
 router.post('/send-spl-token', async (req, res) => {
     const payer = web3sol.Keypair.fromSecretKey(bs58.decode(req.body.secretKey));
     const receiver = new web3sol.PublicKey(req.body.toPublicKey);
