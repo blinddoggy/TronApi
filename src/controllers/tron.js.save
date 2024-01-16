@@ -11,18 +11,12 @@ const { derivePath } = require('ed25519-hd-key');
 //const ed25519 = require("ed25519-hd-key");
 const bs58 = require('bs58');
 const ethers = require('ethers');
-const { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL,sendAndConfirmTransaction } = require('@solana/web3.js');
-//const { Token, TOKEN_PROGRAM_ID } = require('@solana/spl-token');
+const { Connection, PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 //const { Keypair, Connection, PublicKey } = require('@solana/web3.js');
-//const { Token, TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, transfer } = require("@solana/spl-token");
+
 //TODO: ------------------Organizar metodos que no son del API de Tron en otra ruta----------------
 const endpoint = process.env.QN_ENDPOINT_URL;
 const testnetUrl = 'https://nile.trongrid.io'; // Puedes cambiar esto con la URL de la red de pruebas que desees
-
-const feepayer = process.env.FEE_PAYER
-
-const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index')
-const SPL = require("@solana/spl-token");
 
 let useMainnet = false; // Cambiar a false para usar la red de pruebas
 
@@ -38,111 +32,43 @@ const tronWeb = new TronWeb({
 
 //--------------------------------------------------------SOLANA TEST----------------------------------------------------//
 
-
-// Obtener Balance de SPL Token
-router.get('/get-balance-spl/:publicKey/:splToken', async (req, res) => {
-    const { publicKey, splToken } = req.params;
-    const connection = new Connection(endpoint)
-    const account = await findAssociatedTokenAddress(new PublicKey(publicKey), new PublicKey(splToken))
-    try {
-        const balance = await connection.getTokenAccountBalance(new PublicKey(account.toString()))
-        res.json({
-            'balance': balance.value.uiAmount
-        })
-    } catch (e) {
-        res.json({
-            'balance': e
-        })
-    }
-})
-
-//enviar spl tokens solana
-  // Enviar SPL Tokens, el que sea ;)
-router.post('/send-spl-token', async (req, res) => {
-    const payer = Keypair.fromSecretKey(bs58.decode(req.body.secretKey));
-    const receiver = new PublicKey(req.body.toPublicKey);
+router.post('/send-sol/', async (req, res) => {
+    const secretKey = req.body.secretKey;
+    const toPublicKey = req.body.toPublicKey;
     const amount = req.body.amount;
-    const mint = req.body.mint;
     const fee_payer = Keypair.fromSecretKey(bs58.decode(feepayer));
 
-    const connection = new Connection(endpoint, "confirmed")
-
-    const mintAddress = new PublicKey(mint)
-
     try {
+        const toPubKey = new PublicKey(toPublicKey)
+        const connection = new Connection(endpoint, "confirmed")
+
+        //create Keypair
+        const keypair = Keypair.fromSecretKey(
+            bs58.decode(secretKey)
+        );   
+          
+        const transferTransaction = new Transaction().add(SystemProgram.transfer({
+            fromPubkey: keypair.publicKey,
+            toPubkey: toPubKey,
+            lamports: amount * LAMPORTS_PER_SOL 
+        }))
     
-        const transactionLamports = await getTokenLamports(mint)
-    
-        const fromTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
-            connection,
-            fee_payer,
-            mintAddress,
-            payer.publicKey
-        )
-    
-        const toTokenAccount = await SPL.getOrCreateAssociatedTokenAccount(
-            connection,
-            fee_payer,
-            mintAddress,
-            receiver
-        )
-            
-        const transactionSignature = await SPL.transfer(
-            connection,
-            fee_payer,
-            fromTokenAccount.address,
-            toTokenAccount.address,
-            payer.publicKey,
-            amount * transactionLamports,
-            [fee_payer, payer]
-        )
-        
-        res.json({
-            'transfer_transaction': `https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet-beta`
-        })
-    } catch (error) {
-        res.send(error.message)
-    }
-})
-
-//send solana balance
-router.post('/send-sol/', async (req, res) => {
-    const { secretKey, toPublicKey, amount } = req.body;
-    const endpoint = "https://api.mainnet-beta.solana.com"; // Define el endpoint de conexión
-
-    try {
-        const toPubKey = new PublicKey(toPublicKey);
-        const connection = new Connection(endpoint, "confirmed");
-        
-        // Crea el keypair a partir de la clave secreta
-        const keypair = Keypair.fromSecretKey(bs58.decode(secretKey));
-
-        // Crea la transacción de transferencia
-        const transferTransaction = new Transaction().add(
-            SystemProgram.transfer({
-                fromPubkey: keypair.publicKey,
-                toPubkey: toPubKey,
-                lamports: amount * LAMPORTS_PER_SOL
-            })
-        );
-
-        // Firma y envía la transacción
-        var signature = await sendAndConfirmTransaction(
+        var signature = await web3sol.sendAndConfirmTransaction(
             connection, 
             transferTransaction, 
-            [keypair] // Usa el mismo keypair como pagador de tarifas
-        );
-
+            [fee_payer, keypair]).catch((err) => {
+            res.send(err.message)
+        })
         res.json({
             'transfer_transaction': `https://explorer.solana.com/tx/${signature}?cluster=mainnet-beta`
-        });
+        })
     } catch (error) {
-        console.error(error);
-        res.status(500).send({ 'error': error.message });
+        res.json({
+            'error': error
+        })
     }
-});
 
-
+})
 //get connection
 const connection = new Connection("https://api.mainnet-beta.solana.com");
 //get solana balance

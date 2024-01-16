@@ -4,7 +4,6 @@ const bodyParser=require('body-parser');
 require("dotenv").config();
 
 const tron = require('./src/controllers/tron');
-const utils = require('./src/controllers/utils');
 
 
 const port = process.env.PORT;
@@ -21,5 +20,4 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 app.use('/tron', tron);
-app.use('/utils', utils);
 
