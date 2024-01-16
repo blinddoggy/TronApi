@@ -10,6 +10,7 @@
   "author": "maritoli",
   "license": "MIT",
   "dependencies": {
+    "@metaplex-foundation/js": "^0.20.1",
     "@solana/spl-token": "^0.3.11",
     "@solana/web3.js": "^1.88.0",
     "bcrypt": "^5.1.1",
