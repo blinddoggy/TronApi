@@ -38,20 +38,64 @@ const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/ind
 const bitcoin = require('bitcoinjs-lib');
 
 
-// Obtener Balance de SOL con llave Publica
-router.get('/get-solana-balance/:publicKey', async (req, res) => {
-    const { publicKey } = req.params;
-    const connection = new web3sol.Connection(endpoint)
-    // const sendAir = await connection.requestAirdrop(new web3sol.PublicKey(publicKey),1000000);
-    const lamports = await connection.getBalance(new web3sol.PublicKey(publicKey)).catch((err) => {
-        console.log(err);
-    })
-    
-    const sol = lamports / LAMPORTS_PER_SOL
+router.post('/get-keypairs', async (req, res) => {
+
+    const mnemonic = req.body.mnemonic;
+
+    const isValid = bip39.validateMnemonic(mnemonic);
+
+    if (isValid === true) {
+
+    const seed = await bip39.mnemonicToSeed(mnemonic);
+    const node = bip32.fromSeed(seed);
+
+    let path, privateKey, publicKey;
+
+    // Generar claves para EVM
+    path = `m/44'/60'/0'/0/0`;
+    privateKey = node.derivePath(path).privateKey.toString('hex');
+    publicKey = new ethers.Wallet(privateKey).address;
+    const evmKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+    // Generar claves para Tron
+    path = `m/44'/195'/0'/0/0`;
+    privateKey = node.derivePath(path).privateKey.toString('hex');
+    publicKey = await TronWeb.address.fromPrivateKey(privateKey);
+    const tronKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+    //Generar claves para Solana
+    path = `m/44'/501'/0'/0'`;
+    const keypair = web3sol.Keypair.fromSeed(ed25519.derivePath(path, seed.toString("hex")).key);
+    privateKey = bs58.encode(keypair.secretKey);
+    publicKey = keypair.publicKey.toString();
+    const solanaKeyPair = {
+        'public_key': publicKey,
+        'private_key': privateKey
+    };
+
+
     res.json({
-        'balance': sol,
-    })
-})
+        // 'mnemonic':mnemonic,
+        'evm_keypair': evmKeyPair,
+        'tron_keypair': tronKeyPair,
+        'solana_keypair': solanaKeyPair
+        // 'bitcoin_keypair': bitcoinKeyPairObject
+    });
+
+}else {
+    res.json({
+        'error': 'La frase de recuperacion es invalida'})
+}
+
+});
+
+
 
 
 
