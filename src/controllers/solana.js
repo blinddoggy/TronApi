@@ -38,6 +38,36 @@ const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/ind
 const bitcoin = require('bitcoinjs-lib');
 
 
+
+// Obtener NFTs con llave Publica
+router.get('/get-solana-nft/:pubKey', async (req,res) => {
+    try {
+        const { pubKey } = req.params;
+
+        const nfts = []
+    
+        const connection = new web3sol.Connection(endpoint);
+        const wallet = new web3sol.PublicKey(pubKey)
+    
+        const metaplex = new Metaplex(connection);
+        const myNfts = await metaplex.nfts().findAllByOwner({
+            owner: wallet
+        });
+    
+        for (let i = 0; i < myNfts.length; i++) {
+            let fetchResult = await fetch(myNfts[i].uri)
+            let json = await fetchResult.json()
+            nfts.push(json)
+        }
+    
+        res.json(nfts)
+    } catch (error) {
+        res.json({
+            "error": error
+        })
+    }
+})
+
 // Obtener Balance de SOL con llave Publica
 router.get('/get-solana-balance/:publicKey', async (req, res) => {
     const { publicKey } = req.params;
@@ -93,26 +123,6 @@ router.post('/send-sol/', async (req, res) => {
     }
 
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
