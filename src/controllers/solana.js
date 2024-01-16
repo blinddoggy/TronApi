@@ -37,8 +37,25 @@ const { TokenStandard } = require ("@metaplex-foundation/mpl-token-metadata");
 const { findAssociatedTokenAddress, getTokenLamports } = require('../helpers/index');
 const bitcoin = require('bitcoinjs-lib');
 
+// Obtener Balance de SPL Token
+router.get('/get-balance-spl/:publicKey/:splToken', async (req, res) => {
+    const { publicKey, splToken } = req.params;
+    const connection = new web3sol.Connection(endpoint)
+    const account = await findAssociatedTokenAddress(new web3sol.PublicKey(publicKey), new web3sol.PublicKey(splToken))
+    try {
+        const balance = await connection.getTokenAccountBalance(new web3sol.PublicKey(account.toString()))
+        res.json({
+            'balance': balance.value.uiAmount
+        })
+    } catch (e) {
+        res.json({
+            'balance': 0
+        })
+    }
+})
 
 
+//ESTA FALLANDO EL ENDPOINT EN EL SERVER
 // Obtener NFTs con llave Publica
 router.get('/get-solana-nft/:pubKey', async (req,res) => {
     try {
