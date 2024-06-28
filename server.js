@@ -5,6 +5,9 @@ require("dotenv").config();
 
 const tron = require('./src/controllers/tron');
 const utils = require('./src/controllers/utils');
+const solana = require('./src/controllers/solana');
+
+
 
 
 const port = process.env.PORT;
@@ -22,4 +25,6 @@ app.use(bodyParser.json());
 
 app.use('/tron', tron);
 app.use('/utils', utils);
+app.use('/solana', solana);
+
 
