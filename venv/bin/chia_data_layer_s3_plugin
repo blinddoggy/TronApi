@@ -1,0 +1,6 @@
+#!/home/ubuntu/chia-blockchain/venv/bin/python
+import sys
+from chia.data_layer.s3_plugin_service import run_server
+
+if __name__ == '__main__':
+    sys.exit(run_server())

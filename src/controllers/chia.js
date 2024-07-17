@@ -4,7 +4,8 @@ const express = require('express');
 const router = express.Router();
 const { exec } = require('child_process');
 
-const chiaDir = '../chia-blockchain';  // Ruta a la carpeta chia-blockchain
+const chiaDir = '/home/ubuntu/chia-blockchain';  // Ruta a la carpeta chia-blockchain
+const chiaCmd = `${chiaDir}/venv/bin/chia`;      // Ruta completa al ejecutable de chia dentro del entorno virtual
 
 // Crear Data Store
 router.post('/create-data-store', (req, res) => {
@@ -14,7 +15,7 @@ router.post('/create-data-store', (req, res) => {
         return res.status(400).json({ error: 'Fee es requerido' });
     }
 
-    const command = `chia data create_data_store -m ${fee}`;
+    const command = `${chiaCmd} data create_data_store -m ${fee}`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
@@ -54,7 +55,7 @@ router.post('/update-data-store', (req, res) => {
         value: actions[key]
     }));
 
-    const command = `chia data update_data_store --id=${id} -d '${JSON.stringify(changelist)}'`;
+    const command = `${chiaCmd} data update_data_store --id=${id} -d '${JSON.stringify(changelist)}'`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
@@ -88,7 +89,7 @@ router.get('/get-data-store', (req, res) => {
         return res.status(400).json({ error: 'ID y key son requeridos' });
     }
 
-    const command = `chia data get_value --id=${id} --key=${key}`;
+    const command = `${chiaCmd} data get_value --id=${id} --key=${key}`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
@@ -114,6 +115,40 @@ router.get('/get-data-store', (req, res) => {
     });
 });
 
+// Obtener información del Data Store
+router.get('/get-data-store-info', (req, res) => {
+    const { id } = req.query;
+
+    if (!id) {
+        return res.status(400).json({ error: 'ID es requerido' });
+    }
+
+    const command = `${chiaCmd} data get_keys_values --id=${id}`;
+
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error ejecutando el comando: ${error.message}`);
+            return res.status(500).json({
+                error: `Error ejecutando el comando: ${error.message}`,
+                details: stderr,
+                suggestion: 'Verifique que el servicio RPC de Chia Data Layer esté corriendo y accesible en el puerto 8562.'
+            });
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return res.status500.json({
+                error: 'Error en la ejecución del comando',
+                details: stderr
+            });
+        }
+        console.log(`stdout: ${stdout}`);
+        res.json({
+            message: 'Información del Data Store obtenida exitosamente',
+            output: stdout
+        });
+    });
+});
+
 // Eliminar Data Store
 router.delete('/delete-data-store', (req, res) => {
     const { id } = req.body;
@@ -122,7 +157,7 @@ router.delete('/delete-data-store', (req, res) => {
         return res.status(400).json({ error: 'ID es requerido' });
     }
 
-    const command = `chia data delete_data_store --id=${id}`;
+    const command = `${chiaCmd} data delete_data_store --id=${id}`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
@@ -150,7 +185,7 @@ router.delete('/delete-data-store', (req, res) => {
 
 // Listar Data Stores
 router.get('/list-data-stores', (req, res) => {
-    const command = `chia data list_data_stores`;
+    const command = `${chiaCmd} data list_data_stores`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {

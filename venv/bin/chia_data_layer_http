@@ -1,0 +1,6 @@
+#!/home/ubuntu/chia-blockchain/venv/bin/python
+import sys
+from chia.data_layer.data_layer_server import main
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,0 +1,6 @@
+#!/home/ubuntu/chia-blockchain/venv/bin/python
+import sys
+from chia.cmds.chia import main
+
+if __name__ == '__main__':
+    sys.exit(main())
