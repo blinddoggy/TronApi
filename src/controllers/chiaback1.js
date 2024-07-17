@@ -51,8 +51,8 @@ router.post('/update-data-store', (req, res) => {
 
     const changelist = Object.keys(actions).map(key => ({
         action: 'insert',
-        key: key,
-        value: Buffer.from(actions[key], 'utf-8').toString('hex') // Convertir a hexadecimal
+        key,
+        value: actions[key]
     }));
 
     const command = `${chiaCmd} data update_data_store --id=${id} -d '${JSON.stringify(changelist)}'`;
@@ -136,7 +136,7 @@ router.get('/get-data-store-info', (req, res) => {
         }
         if (stderr) {
             console.error(`stderr: ${stderr}`);
-            return res.status(500).json({
+            return res.status500.json({
                 error: 'Error en la ejecución del comando',
                 details: stderr
             });
