@@ -4,6 +4,8 @@ const express = require('express');
 const router = express.Router();
 const { exec } = require('child_process');
 
+const chiaDir = '../chia-blockchain';  // Ruta a la carpeta chia-blockchain
+
 // Crear Data Store
 router.post('/create-data-store', (req, res) => {
     const { fee } = req.body;
@@ -14,7 +16,7 @@ router.post('/create-data-store', (req, res) => {
 
     const command = `chia data create_data_store -m ${fee}`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error ejecutando el comando: ${error.message}`);
             return res.status(500).json({
@@ -54,7 +56,7 @@ router.post('/update-data-store', (req, res) => {
 
     const command = `chia data update_data_store --id=${id} -d '${JSON.stringify(changelist)}'`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error ejecutando el comando: ${error.message}`);
             return res.status(500).json({
@@ -88,7 +90,7 @@ router.get('/get-data-store', (req, res) => {
 
     const command = `chia data get_value --id=${id} --key=${key}`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error ejecutando el comando: ${error.message}`);
             return res.status(500).json({
@@ -122,7 +124,7 @@ router.delete('/delete-data-store', (req, res) => {
 
     const command = `chia data delete_data_store --id=${id}`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error ejecutando el comando: ${error.message}`);
             return res.status(500).json({
@@ -150,7 +152,7 @@ router.delete('/delete-data-store', (req, res) => {
 router.get('/list-data-stores', (req, res) => {
     const command = `chia data list_data_stores`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error ejecutando el comando: ${error.message}`);
             return res.status(500).json({
