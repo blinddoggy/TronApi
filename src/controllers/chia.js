@@ -7,6 +7,11 @@ const { exec } = require('child_process');
 const chiaDir = '/home/ubuntu/chia-blockchain';  // Ruta a la carpeta chia-blockchain
 const chiaCmd = `${chiaDir}/venv/bin/chia`;      // Ruta completa al ejecutable de chia dentro del entorno virtual
 
+// Función para convertir ASCII a hexadecimal
+function asciiToHex(str) {
+    return Buffer.from(str, 'utf-8').toString('hex');
+}
+
 // Función para convertir hexadecimal a ASCII
 function hexToAscii(hex) {
     if (hex.startsWith('0x')) {
@@ -59,8 +64,8 @@ router.post('/update-data-store', (req, res) => {
 
     const changelist = Object.keys(actions).map(key => ({
         action: 'insert',
-        key: key,
-        value: Buffer.from(actions[key], 'utf-8').toString('hex') // Convertir a hexadecimal
+        key: asciiToHex(key), // Convertir key de ASCII a hexadecimal
+        value: Buffer.from(actions[key], 'utf-8').toString('hex') // Convertir value a hexadecimal
     }));
 
     const command = `${chiaCmd} data update_data_store --id=${id} -d '${JSON.stringify(changelist)}'`;
@@ -97,7 +102,7 @@ router.get('/get-data-store', (req, res) => {
         return res.status(400).json({ error: 'ID y key son requeridos' });
     }
 
-    const command = `${chiaCmd} data get_value --id=${id} --key=${key}`;
+    const command = `${chiaCmd} data get_value --id=${id} --key=${asciiToHex(key)}`; // Convertir key de ASCII a hexadecimal
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
         if (error) {
@@ -154,8 +159,8 @@ router.get('/get-data-store-info', (req, res) => {
         let output = JSON.parse(stdout);
         output.keys_values = output.keys_values.map(item => ({
             ...item,
-            key: hexToAscii(item.key),
-            value: hexToAscii(item.value)
+            key: hexToAscii(item.key), // Convertir key de hexadecimal a ASCII
+            value: hexToAscii(item.value) // Convertir value de hexadecimal a ASCII
         }));
 
         console.log(`stdout: ${stdout}`);
