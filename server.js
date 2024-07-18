@@ -7,7 +7,7 @@ const tron = require('./src/controllers/tron');
 const utils = require('./src/controllers/utils');
 const solana = require('./src/controllers/solana');
 const chia = require('./src/controllers/chia');
-
+const auth = require('./src/controllers/auth').router;
 
 
 const port = process.env.PORT;
@@ -27,4 +27,4 @@ app.use('/tron', tron);
 app.use('/utils', utils);
 app.use('/solana', solana);
 app.use('/chia', chia);
-
+app.use('/auth', auth);

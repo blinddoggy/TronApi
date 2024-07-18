@@ -1,8 +1,9 @@
-// routes/chiaController.js
+// src/controllers/chia.js
 
 const express = require('express');
-const router = express.Router();
 const { exec } = require('child_process');
+const authController = require('./auth');
+const router = express.Router();
 
 const chiaDir = '/home/ubuntu/chia-blockchain';  // Ruta a la carpeta chia-blockchain
 const chiaCmd = `${chiaDir}/venv/bin/chia`;      // Ruta completa al ejecutable de chia dentro del entorno virtual
@@ -21,7 +22,7 @@ function hexToAscii(hex) {
 }
 
 // Crear Data Store
-router.post('/create-data-store', (req, res) => {
+router.post('/create-data-store', authController.verifyToken, (req, res) => {
     const { fee } = req.body;
 
     if (!fee) {
@@ -55,7 +56,7 @@ router.post('/create-data-store', (req, res) => {
 });
 
 // Actualizar Data Store
-router.post('/update-data-store', (req, res) => {
+router.post('/update-data-store', authController.verifyToken, (req, res) => {
     const { id, actions } = req.body;
 
     if (!id || !actions) {
@@ -95,7 +96,7 @@ router.post('/update-data-store', (req, res) => {
 });
 
 // Consultar Data Store
-router.get('/get-data-store', (req, res) => {
+router.get('/get-data-store', authController.verifyToken, (req, res) => {
     const { id, key } = req.query;
 
     if (!id || !key) {
@@ -129,7 +130,7 @@ router.get('/get-data-store', (req, res) => {
 });
 
 // Obtener información del Data Store
-router.get('/get-data-store-info', (req, res) => {
+router.get('/get-data-store-info', authController.verifyToken, (req, res) => {
     const { id } = req.query;
 
     if (!id) {
@@ -172,7 +173,7 @@ router.get('/get-data-store-info', (req, res) => {
 });
 
 // Eliminar Data Store
-router.delete('/delete-data-store', (req, res) => {
+router.delete('/delete-data-store', authController.verifyToken, (req, res) => {
     const { id } = req.body;
 
     if (!id) {
@@ -206,7 +207,7 @@ router.delete('/delete-data-store', (req, res) => {
 });
 
 // Listar Data Stores
-router.get('/list-data-stores', (req, res) => {
+router.get('/list-data-stores', authController.verifyToken, (req, res) => {
     const command = `${chiaCmd} data list_data_stores`;
 
     exec(command, { cwd: chiaDir }, (error, stdout, stderr) => {
@@ -234,7 +235,7 @@ router.get('/list-data-stores', (req, res) => {
 });
 
 // Nueva ruta GET que devuelve "Hola CHIA"
-router.get('/hola-chia', (req, res) => {
+router.get('/hola-chia', authController.verifyToken, (req, res) => {
     res.send('Hola CHIA');
 });
 
