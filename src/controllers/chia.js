@@ -7,6 +7,14 @@ const { exec } = require('child_process');
 const chiaDir = '/home/ubuntu/chia-blockchain';  // Ruta a la carpeta chia-blockchain
 const chiaCmd = `${chiaDir}/venv/bin/chia`;      // Ruta completa al ejecutable de chia dentro del entorno virtual
 
+// Función para convertir hexadecimal a ASCII
+function hexToAscii(hex) {
+    if (hex.startsWith('0x')) {
+        hex = hex.slice(2);
+    }
+    return Buffer.from(hex, 'hex').toString('utf-8');
+}
+
 // Crear Data Store
 router.post('/create-data-store', (req, res) => {
     const { fee } = req.body;
@@ -141,10 +149,19 @@ router.get('/get-data-store-info', (req, res) => {
                 details: stderr
             });
         }
+
+        // Convertir la salida JSON
+        let output = JSON.parse(stdout);
+        output.keys_values = output.keys_values.map(item => ({
+            ...item,
+            key: hexToAscii(item.key),
+            value: hexToAscii(item.value)
+        }));
+
         console.log(`stdout: ${stdout}`);
         res.json({
             message: 'Información del Data Store obtenida exitosamente',
-            output: stdout
+            output: output
         });
     });
 });
